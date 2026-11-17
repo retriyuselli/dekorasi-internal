@@ -44,8 +44,9 @@ class WarehouseStockTest extends TestCase
         $stock = Stock::query()->where('warehouse_id', $warehouse->id)->where('condition', StockCondition::Good)->firstOrFail();
 
         $this->assertSame('720000.00', $stock->nominal);
-        $this->assertSame('780000.00', $warehouse->nominalTotal());
+        $this->assertSame('720000.00', $warehouse->nominalTotal());
         $this->assertSame(1, $warehouse->itemCount());
+        $this->assertSame(1, $stock->item->stocks()->count());
     }
 
     public function test_warehouse_user_can_place_stock_and_sales_cannot_open_items(): void
@@ -119,6 +120,9 @@ class WarehouseStockTest extends TestCase
         $this->assertFalse(
             Item::query()->unassigned()->where('code', 'TND-SARNAFIL')->exists(),
         );
+        $this->assertTrue(Item::query()->unassigned()->where('code', 'TND-LIPAT')->exists());
+        $this->assertTrue(Item::query()->unassigned()->where('code', 'BNG-STAND')->exists());
+        $this->assertTrue(Item::query()->unassigned()->where('code', 'SGN-WELCOME')->exists());
     }
 
     public function test_an_item_already_stored_cannot_be_added_to_a_warehouse_again(): void

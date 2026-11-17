@@ -350,18 +350,15 @@ class DecorationDemoSeeder extends Seeder
 
         $stocks = [
             ['warehouse' => 'GD-KURSI', 'location' => 'RAK-TIFFANY', 'item' => 'KRS-TIFFANY', 'quantity' => 48, 'price' => 15000, 'condition' => StockCondition::Good, 'date' => '2026-02-10'],
-            ['warehouse' => 'GD-KURSI', 'location' => 'RAK-TIFFANY', 'item' => 'KRS-TIFFANY', 'quantity' => 4, 'price' => 15000, 'condition' => StockCondition::Repair, 'date' => '2026-02-10', 'notes' => 'Kaki longgar, menunggu las.'],
             ['warehouse' => 'GD-TENDA', 'location' => 'RAK-SARNAFIL', 'item' => 'TND-SARNAFIL', 'quantity' => 8, 'price' => 750000, 'condition' => StockCondition::Good, 'date' => '2025-11-03'],
-            ['warehouse' => 'GD-TENDA', 'location' => 'RAK-LIPAT', 'item' => 'TND-LIPAT', 'quantity' => 12, 'price' => 250000, 'condition' => StockCondition::Good, 'date' => '2025-11-03'],
             ['warehouse' => 'GD-BUNGA', 'location' => 'RUANG-DINGIN', 'item' => 'BNG-MEJA', 'quantity' => 30, 'price' => 75000, 'condition' => StockCondition::Good, 'date' => '2026-06-01'],
-            ['warehouse' => 'GD-BUNGA', 'location' => 'RUANG-DINGIN', 'item' => 'BNG-STAND', 'quantity' => 6, 'price' => 250000, 'condition' => StockCondition::Good, 'date' => '2026-06-01'],
             ['warehouse' => 'GD-UTAMA', 'location' => 'ZONA-UMUM', 'item' => 'BDP-KAYU', 'quantity' => 3, 'price' => 1800000, 'condition' => StockCondition::Good, 'date' => '2025-08-20'],
             ['warehouse' => 'GD-KAIN', 'location' => 'RAK-KAIN', 'item' => 'KAI-DRAPE', 'quantity' => 80, 'price' => 35000, 'condition' => StockCondition::Good, 'date' => '2026-01-15'],
             ['warehouse' => 'GD-LAMPU', 'location' => 'RAK-LAMPU', 'item' => 'LMP-STAND', 'quantity' => 10, 'price' => 275000, 'condition' => StockCondition::Good, 'date' => '2026-03-12'],
-            ['warehouse' => 'GD-LAMPU', 'location' => 'RAK-LAMPU', 'item' => 'LMP-STAND', 'quantity' => 2, 'price' => 275000, 'condition' => StockCondition::Damaged, 'date' => '2026-03-12', 'notes' => 'Bohlam pecah.'],
             ['warehouse' => 'GD-PANGGUNG', 'location' => 'ZONA-RANGKA', 'item' => 'PNG-RANGKA', 'quantity' => 4, 'price' => 2200000, 'condition' => StockCondition::Good, 'date' => '2025-09-01'],
-            ['warehouse' => 'GD-SIGN', 'location' => 'RAK-SIGN', 'item' => 'SGN-WELCOME', 'quantity' => 5, 'price' => 185000, 'condition' => StockCondition::Good, 'date' => '2026-04-02'],
         ];
+
+        $keptStockIds = [];
 
         foreach ($stocks as $row) {
             $warehouse = Warehouse::query()->where('code', $row['warehouse'])->first();
@@ -370,7 +367,7 @@ class DecorationDemoSeeder extends Seeder
                 continue;
             }
 
-            Stock::query()->updateOrCreate(
+            $stock = Stock::query()->updateOrCreate(
                 [
                     'warehouse_id' => $warehouse->id,
                     'warehouse_location_id' => $locationIds[$row['location']] ?? null,
@@ -385,6 +382,14 @@ class DecorationDemoSeeder extends Seeder
                     'notes' => $row['notes'] ?? null,
                 ],
             );
+            $keptStockIds[] = $stock->id;
         }
+
+        Stock::query()
+            ->whereIn('item_id', array_values($itemIds))
+            ->whereKeyNot($keptStockIds)
+            ->get()
+            ->each
+            ->delete();
     }
 }
